@@ -150,9 +150,9 @@ const $=id=>document.getElementById(id);
 const money=n=>'$'+Math.round(n||0).toLocaleString('es-MX');
 const WHATSAPP='526624176032';
 const EMAILJS_SERVICE_ID='service_ijc4qzo';
-const EMAILJS_TEMPLATE_ID='template_educacion_pendiente';
+const EMAILJS_TEMPLATE_ID='template_dne8qdr';
 const EMAILJS_PUBLIC_KEY='BT4xFfTS1JFggXsdw';
-const EMAILJS_ENABLED=false; // TODO Christian: crear plantilla en emailjs.com para Educación (ver variables en enviarDiagnostico), poner el template_id real arriba y cambiar a true.
+const EMAILJS_ENABLED=true;
 function parseMoney(v){return Number(String(v||'').replace(/[^0-9]/g,''))||0}
 function formatMoneyInput(el){const raw=String(el.value||'').replace(/[^0-9]/g,'');el.value=raw?Number(raw).toLocaleString('es-MX'):''}
 function formatAhorroOtro(el){formatMoneyInput(el);$('ahorro').value=parseMoney(el.value)}
@@ -360,6 +360,7 @@ function enviarDiagnostico(){
       edad_meta: s.edadMeta,
       plazo_anos: s.plazo,
       meta_hoy: money(s.des),
+      aportacion_realista: money(s.ahorro),
       meta_futura: money(s.metaFutura),
       capital_proyectado: money(s.capitalActual),
       brecha: money(s.brecha),
