@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<meta name="referrer" content="no-referrer"/>
+<script>window.GARBA_ACCESS_CONFIG={"product":"educacion","role":"point","api":"https://mi-tracker-seguros.vercel.app/api/pdp-session"};</script>
+<script src="pdp-access.js"></script>
+
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Punto de Partida · Educación · Christian GarBa</title>
@@ -127,7 +131,7 @@ body{background:radial-gradient(ellipse 70% 50% at 15% -10%,rgba(10,22,40,.07),t
     <div class="big-input-wrap"><div class="big-input-label">¿Cuánto podrías ahorrar al mes cómodamente?</div><div class="big-input-sub">No pongas lo ideal. Elige una cantidad que realmente podrías sostener sin comprometer tu tranquilidad financiera.</div><input type="hidden" id="ahorro"/><div class="choice-grid amounts"><button type="button" class="choice-btn" onclick="selAhorro(2000,this)">$2,000</button><button type="button" class="choice-btn" onclick="selAhorro(3000,this)">$3,000</button><button type="button" class="choice-btn" onclick="selAhorro(5000,this)">$5,000</button><button type="button" class="choice-btn" onclick="selAhorro(7500,this)">$7,500</button><button type="button" class="choice-btn" onclick="selAhorro(10000,this)">$10,000</button><button type="button" class="choice-btn" onclick="selOtroAhorro(this)">Otro monto</button></div><div class="big-input-row other-amount" id="otroAhorroWrap"><div class="big-prefix">$</div><input class="big-fi" type="text" inputmode="numeric" id="ahorroOtro" placeholder="Ej. 12,000" oninput="formatAhorroOtro(this)"/><div class="big-suffix">MXN / mes</div></div></div>
     <div class="mini-note" id="plazoResumen">Con la edad de tu hijo/a y la edad meta que elegiste, tu plan tendría un plazo definido — lo verás aquí en cuanto completes el paso anterior.</div>
     <div class="mini-note"><strong>Último dato:</strong> así Christian te manda tu sesión ya precargada y puede platicar contigo directamente.</div>
-    <div class="grid2"><div><label class="fl">¿Cómo te llamas?</label><input class="fi" type="text" id="nombre" placeholder="Ej. Roberto Martínez" autocomplete="off"/><div class="hint">Lo usamos para mostrarte un resultado personalizado.</div></div><div><label class="fl">Tu WhatsApp</label><input class="fi" type="tel" id="wanum" placeholder="Ej. 6622001122" maxlength="10" inputmode="numeric" autocomplete="off"/><div class="hint">Así Christian te contacta directamente cuando quieras platicar.</div></div></div>
+    <div class="grid2"><div><label class="fl">¿Cómo te llamas?</label><input class="fi" type="text" id="nombre" placeholder="Ej. Roberto Martínez" autocomplete="off"/><div class="hint">Lo usamos para mostrarte un resultado personalizado.</div></div><div><label class="fl">Tu WhatsApp</label><input class="fi" type="tel" id="wanum" placeholder="Ej. 6622001122" maxlength="16" inputmode="numeric" autocomplete="off"/><div class="hint">Así Christian te contacta directamente cuando quieras platicar.</div></div></div>
     <div class="err" id="e2">Completa tu ahorro mensual, tu nombre y tu WhatsApp para ver tu diagnóstico.</div>
     <div style="display:flex;gap:10px;margin-top:18px;"><button class="btn-outline" onclick="goGoal()">← Regresar</button><button class="btn-primary" onclick="calcular()">Ver qué tan cerca estoy →</button></div>
     <div class="disclaimer" style="text-align:left;margin-top:12px">Tu información se usa únicamente para este diagnóstico. No compartimos tus datos.</div>
@@ -274,8 +278,8 @@ function calcular(){
   const ahorro=parseMoney($('ahorro').value),nom=$('nombre').value.trim(),wa=$('wanum').value.trim();
   const err=$('e2');
   if(!ahorro||ahorro<2000){err.textContent='Elige una aportación mensual. La mínima para calcular esta estrategia es de $2,000.';err.classList.add('vis');return}
-  const ok=nom&&/^\d{10}$/.test(wa);
-  if(!ok){err.textContent='Completa tu nombre y tu WhatsApp (10 dígitos) para ver tu diagnóstico.';err.classList.add('vis');return}
+  const ok=nom&&/^(?:\d{10}|\+[1-9]\d{7,14})$/.test(wa);
+  if(!ok){err.textContent='Completa tu nombre y tu WhatsApp (10 dígitos o formato internacional +país) para ver tu diagnóstico.';err.classList.add('vis');return}
   err.classList.remove('vis');$('calcOv').classList.add('vis');
   setTimeout(()=>{
     const des=parseMoney($('deseo').value),edadHijo=+$('edadHijo').value,edadMeta=+$('edadMeta').value,nombreHijo=($('nombreHijo').value||'').trim();
@@ -380,7 +384,7 @@ function enviarDiagnostico(){
       sesion_url: s.sesionUrl || ''
     }
   };
-  console.log('Enviando diagnóstico a EmailJS:', payload);
+  // No registrar identidad ni enlaces de acceso en consola.
   fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -397,6 +401,14 @@ function enviarDiagnostico(){
     console.error('Error enviando EmailJS:', error);
   });
 }
+</script>
+<script>
+// Identidad/persistencia alrededor del cálculo; las fórmulas financieras permanecen sin cambios.
+(function(){
+ const originalMostrar=mostrar, originalEmail=enviarDiagnostico;
+ mostrar=function(){originalMostrar();window.GarbaAccess.pending(ST)};
+ enviarDiagnostico=function(){return window.GarbaAccess.finish(ST,()=>originalEmail())};
+})();
 </script>
 </body>
 </html>
