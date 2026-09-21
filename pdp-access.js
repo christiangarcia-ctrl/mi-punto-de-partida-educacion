@@ -80,12 +80,14 @@
   status('Estamos recuperando tu información…');
   try{
    const r=await request(cfg.role==='advisor'?'advisor':'resolve');revision=r.revision;known=r.data;
-   if(cfg.role==='advisor')window.garbaHydrateAdvisor(r.data);else pointHydrate(r.data);
+   if(cfg.role==='advisor'){window.garbaHydrateAdvisor(r.data);window.__gaAdvisoryBoot={advisory:r.advisory||null,revision:r.advisoryRevision||0};window.GaV2?.boot?.()}else pointHydrate(r.data);
    clear();
   }catch(e){status(e.userMessage?e.message:'No pudimos recuperar tu información. Intenta nuevamente.',load)}
  }
  window.GarbaAccess={
   active:!!token,
+  // Advisor V2: acciones acotadas del servidor (advisory_save / advisory_slots / advisory_schedule).
+  call(action,extra){return fetch(cfg.api,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({action,product:cfg.product,...(extra||{})}),cache:'no-store',referrerPolicy:'no-referrer'}).then(async r=>{const body=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(body.error||'No pudimos completar la operación.');e.status=r.status;e.body=body;throw e}return body})},
   merge(s){return {...s,correo:document.getElementById('pdpCorreo')?.value??known.correo??'',...(known.fechaNacimiento?{fechaNacimiento:known.fechaNacimiento}:{})}},
   pending(s){if(!token)return;s.sesionUrl='';const wa=document.getElementById('btnWa');if(wa){wa.removeAttribute('href');wa.style.pointerEvents='none';wa.setAttribute('aria-disabled','true')}},
   finish(s,sendEmail){
