@@ -20,8 +20,8 @@
   if(retry){const button=document.createElement('button');button.type='button';button.textContent='Reintentar';button.onclick=retry;box.append(button)}
  }
  function clear(){box?.remove();box=null}
- async function request(action,data){
-  const r=await fetch(cfg.api,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({action,product:cfg.product,revision,...(data?{data}:{})}),cache:'no-store',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(20000)});
+ async function request(action,data,extra){
+  const r=await fetch(cfg.api,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({action,product:cfg.product,revision,...(data?{data}:{}),...(extra||{})}),cache:'no-store',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(20000)});
   const body=await r.json();if(!r.ok){const e=new Error(body.error||'No pudimos abrir el acceso. Solicita un enlace nuevo.');e.userMessage=true;throw e}return body;
  }
  function set(id,value){const e=document.getElementById(id);if(e&&value!==undefined&&value!==null&&value!==''){e.value=value;e.dispatchEvent(new Event('input',{bubbles:true}));return e}return null}
@@ -71,11 +71,13 @@
   if(contact?.previousElementSibling?.classList.contains('mini-note'))contact.previousElementSibling.textContent='Ya conservamos tus datos disponibles. Completa solo lo que falta o corrige lo que haya cambiado.';
   if(contact&&d.correo){const wrap=document.createElement('div');const input=document.createElement('input');input.type='email';input.id='pdpCorreo';input.className='fi';input.value=d.correo;wrap.append(input);contact.append(wrap);review(input,'Correo',d.correo)}
  }
- function secureLink(s,url){
-  s.sesionUrl=url;
+ // El enlace de Advisor nunca llega al navegador del prospecto: el servidor se lo manda al asesor.
+ function readyWa(s){
+  s.sesionUrl='';
   const wa=document.getElementById('btnWa');
-  if(wa){wa.href='https://wa.me/526624176032?text='+encodeURIComponent('Hola Christian, completé mi Punto de Partida. Mi sesión para la asesoría: '+url);wa.style.pointerEvents='';wa.removeAttribute('aria-disabled')}
+  if(wa){wa.href='https://wa.me/526624176032?text='+encodeURIComponent('Hola Christian, ya completé mi Punto de Partida.');wa.style.pointerEvents='';wa.removeAttribute('aria-disabled')}
  }
+ function projection(s){const p={};for(const k of ['ingresoProy','brecha','capitalActual','aportMeta','metaFutura'])if(typeof s[k]==='number')p[k]=s[k];if(typeof s.fd?.dev==='number')p.devolucion=s.fd.dev;return p}
  async function load(){
   status('Estamos recuperando tu información…');
   try{
@@ -95,7 +97,7 @@
    if(inFlight)return inFlight;
    const attempt=async()=>{
     status('Guardando tu información para la asesoría…');
-    try{const r=await request('save',this.merge(s));revision=r.revision;secureLink(s,r.advisorURL);clear();if(r.sendEmail)sendEmail()}
+    try{const r=await request('save',this.merge(s),{projection:projection(s)});revision=r.revision;readyWa(s);clear();if(r.fallbackEmail)sendEmail()}
     catch(e){status(e.userMessage?e.message:'No pudimos guardar tu información. Intenta nuevamente.',()=>this.finish(s,sendEmail))}
     finally{inFlight=null}
    };

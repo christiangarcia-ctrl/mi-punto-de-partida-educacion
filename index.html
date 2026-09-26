@@ -347,7 +347,7 @@ function mostrar(){
   const joinSel=arr=>encodeURIComponent((arr||[]).join('|'));
   const sesionUrl=`https://christiangarcia-ctrl.github.io/garba-advisor-educacion/?n=${encodeURIComponent(s.nom)}&h=${encodeURIComponent(s.nombreHijo||'')}&e=${s.edadHijo}&m=${s.edadMeta}&g=${Math.round(s.des)}&p=${Math.round(s.ahorro)}&t=${encodeURIComponent(s.wa)}&do=${joinSel(s.dolor)}&me=${joinSel(s.meta)}&po=${joinSel(s.porque)}&co=${joinSel(s.condicion)}&fr=${joinSel(s.freno)}&pq=${encodeURIComponent(s.dolorPorque||'')}`;
   s.sesionUrl=sesionUrl;
-  const msg=encodeURIComponent(`Hola Christian, aquí está mi información para nuestra asesoría. Mi meta es ${money(s.des)} (valor de hoy) para la educación de ${nombreHijoTxt}, y con mi ahorro actual el escenario proyecta ${money(s.capitalActual)} para cuando cumpla ${s.edadMeta} años.${señalWhatsapp(s.freno)}\n\nMi sesión precargada: ${sesionUrl}`);
+  const msg=encodeURIComponent(`Hola Christian, aquí está mi información para nuestra asesoría. Mi meta es ${money(s.des)} (valor de hoy) para la educación de ${nombreHijoTxt}, y con mi ahorro actual el escenario proyecta ${money(s.capitalActual)} para cuando cumpla ${s.edadMeta} años.${señalWhatsapp(s.freno)}`);
   $('btnWa').href=`https://wa.me/${WHATSAPP}?text=${msg}`;
   $('vReality').classList.remove('active');$('vRes').classList.add('active');window.scrollTo({top:0,behavior:'smooth'})
 }
