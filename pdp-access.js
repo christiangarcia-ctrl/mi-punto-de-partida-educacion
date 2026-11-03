@@ -82,7 +82,7 @@
   status('Estamos recuperando tu información…');
   try{
    const r=await request(cfg.role==='advisor'?'advisor':'resolve');revision=r.revision;known=r.data;
-   if(cfg.role==='advisor'){window.garbaHydrateAdvisor(r.data);window.__gaAdvisoryBoot={advisory:r.advisory||null,revision:r.advisoryRevision||0};window.GaV2?.boot?.()}else pointHydrate(r.data);
+   if(cfg.role==='advisor'){window.garbaHydrateAdvisor(r.data);window.__gaAdvisoryBoot={advisory:r.advisory||null,revision:r.advisoryRevision||0};window.GaV2?.boot?.()}else{pointHydrate(r.data);window.GarbaPdpTelemetry?.opened()}
    clear();
   }catch(e){status(e.userMessage?e.message:'No pudimos recuperar tu información. Intenta nuevamente.',load)}
  }
@@ -104,5 +104,40 @@
    inFlight=attempt();return inFlight;
   },set,chips
  };
+
+ // Browser helper. Enable only on prospect's identified Punto de Partida.
+// Sends no answer values, names, phone numbers, or other typed content.
+(function () {
+ 'use strict';
+ const cfg = window.GARBA_ACCESS_CONFIG;
+ if (!cfg || cfg.role === 'advisor') return;
+ const identified = window.GarbaAccess;
+ if (!identified || !identified.active) return;
+ const sent = new Set();
+ let pending = Promise.resolve();
+ function track(event, field) {
+  const key = `${event}:${field || ''}`;
+  if (sent.has(key)) return;
+  sent.add(key);
+  pending = pending.catch(() => {}).then(() => identified.call('telemetry', {
+   event, ...(field ? { field } : {})
+  })).catch(() => {});
+ }
+ window.GarbaPdpTelemetry = {
+  opened() { track('opened'); },
+  completed() { /* submitted_at is authoritative on the server */ }
+ };
+ function interact(ev) {
+  if (!ev.isTrusted) return;
+  const el = ev.target?.closest?.('input,select,textarea,button.choice-btn');
+  if (!el || el.type === 'hidden' || el.type === 'submit') return;
+  if (el.closest?.('[role="status"]')) return;
+  const id = el.id || el.name || el.getAttribute('data-field') || el.closest('[id]')?.id;
+  track('started');
+  if (id && /^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id)) track('progress', id);
+ }
+ document.addEventListener('change', interact, { capture: true });
+ document.addEventListener('click', interact, { capture: true });
+})();
  if(token)document.addEventListener('DOMContentLoaded',load);
 })();
